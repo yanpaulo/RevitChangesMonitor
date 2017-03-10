@@ -61,6 +61,9 @@ namespace Revit.ChangesMonitor
         /// The window is used to show changes' information.
         /// </summary>
         private static ChangesInformationForm m_InfoForm;
+
+
+        private static Dictionary<ElementId, Dictionary<string, string>> elementsDb;
         #endregion
 
         #region Class Static Property
@@ -98,6 +101,8 @@ namespace Revit.ChangesMonitor
         /// failed to load and the release the internal reference.</returns>
         public Result OnStartup(UIControlledApplication application)
         {
+            elementsDb = new Dictionary<ElementId, Dictionary<string, string>>();
+
             // initialize member variables.
             m_CtrlApp = application.ControlledApplication;
             m_ChangesInfoTable = CreateChangeInfoTable();
@@ -148,6 +153,9 @@ namespace Revit.ChangesMonitor
             ICollection<ElementId> addedElem = e.GetAddedElementIds();
             foreach (ElementId id in addedElem)
             {
+                //Element elem = doc.GetElement(id);
+                //var info = GetElementParameterInformation(doc, elem);
+                //elementsDb.Add(id, info);
                 AddChangeInfoRow(id, doc, "Added", transactionNames);
             }
 
@@ -160,7 +168,18 @@ namespace Revit.ChangesMonitor
             ICollection<ElementId> modifiedElem = e.GetModifiedElementIds();
             foreach (ElementId id in modifiedElem)
             {
+                //Element elem = doc.GetElement(id);
+                //var oldInfo = elementsDb[id];
+                //var info = GetElementParameterInformation(doc, elem);
                 AddChangeInfoRow(id, doc, "Modified", transactionNames);
+                //foreach (var item in info)
+                //{
+                //    if (oldInfo[item.Key] != item.Value)
+                //    {
+                //        AddChangeInfoRow(id, doc, "Modified", $"Modified Attribute {item.Key}");
+                //    }
+                //}
+
             }
 
             if (addedElem.Count == 0 && deletedElem.Count == 0 && modifiedElem.Count == 0)
@@ -194,7 +213,7 @@ namespace Revit.ChangesMonitor
                 newRow["ChangeType"] = changeType;
                 newRow["Name"] = "";
                 newRow["Category"] = "";
-                
+
             }
             else
             {
@@ -231,7 +250,7 @@ namespace Revit.ChangesMonitor
             DataColumn styleColumn = new DataColumn("ChangeType", typeof(System.String));
             styleColumn.Caption = "ChangeType";
             changesInfoTable.Columns.Add(styleColumn);
-            
+
             // Create a "Name" column. It will be the Element Name
             DataColumn nameColum = new DataColumn("Name", typeof(System.String));
             nameColum.Caption = "Name";
@@ -241,9 +260,73 @@ namespace Revit.ChangesMonitor
             DataColumn categoryColum = new DataColumn("Category", typeof(System.String));
             categoryColum.Caption = "Category";
             changesInfoTable.Columns.Add(categoryColum);
-            
+
             // return this data table 
             return changesInfoTable;
+        }
+
+        Dictionary<string, string> GetElementParameterInformation(Document document, Element element)
+        {
+            var ret = new Dictionary<string, string>();
+            // iterate element's parameters
+            foreach (Parameter para in element.Parameters)
+            {
+                var result = GetParameterInformation(para, document);
+                ret.Add(result.Key, result.Value);
+            }
+
+            return ret;
+        }
+
+        KeyValuePair<string, string> GetParameterInformation(Parameter para, Document document)
+        {
+            string defName = para.Definition.Name;
+            string defValue = string.Empty;
+            // Use different method to get parameter data according to the storage type
+            switch (para.StorageType)
+            {
+                case StorageType.Double:
+                    //covert the number into Metric
+                    defValue = para.AsValueString();
+                    break;
+                case StorageType.ElementId:
+                    //find out the name of the element
+                    Autodesk.Revit.DB.ElementId id = para.AsElementId();
+                    if (id.IntegerValue >= 0)
+                    {
+                        defValue = document.GetElement(id).Name;
+                    }
+                    else
+                    {
+                        defValue = id.IntegerValue.ToString();
+                    }
+                    break;
+                case StorageType.Integer:
+                    if (ParameterType.YesNo == para.Definition.ParameterType)
+                    {
+                        if (para.AsInteger() == 0)
+                        {
+                            defValue = "False";
+                        }
+                        else
+                        {
+                            defValue = "True";
+                        }
+                    }
+                    else
+                    {
+                        defValue = para.AsInteger().ToString();
+                    }
+                    break;
+                case StorageType.String:
+                    defValue = para.AsString();
+                    break;
+                default:
+                    defValue = "Unexposed parameter.";
+                    break;
+            }
+
+            return new KeyValuePair<string, string>(defName, defValue);
         }
         #endregion
     }
