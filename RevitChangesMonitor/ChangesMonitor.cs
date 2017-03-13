@@ -153,9 +153,10 @@ namespace Revit.ChangesMonitor
             ICollection<ElementId> addedElem = e.GetAddedElementIds();
             foreach (ElementId id in addedElem)
             {
-                //Element elem = doc.GetElement(id);
-                //var info = GetElementParameterInformation(doc, elem);
-                //elementsDb.Add(id, info);
+                Element elem = doc.GetElement(id);
+                var info = GetElementParameterInformation(doc, elem);
+                elementsDb.Add(id, info);
+
                 AddChangeInfoRow(id, doc, "Added", transactionNames);
             }
 
@@ -168,17 +169,18 @@ namespace Revit.ChangesMonitor
             ICollection<ElementId> modifiedElem = e.GetModifiedElementIds();
             foreach (ElementId id in modifiedElem)
             {
-                //Element elem = doc.GetElement(id);
-                //var oldInfo = elementsDb[id];
-                //var info = GetElementParameterInformation(doc, elem);
+                Element elem = doc.GetElement(id);
+                var oldInfo = elementsDb[id];
+                var info = GetElementParameterInformation(doc, elem);
                 AddChangeInfoRow(id, doc, "Modified", transactionNames);
-                //foreach (var item in info)
-                //{
-                //    if (oldInfo[item.Key] != item.Value)
-                //    {
-                //        AddChangeInfoRow(id, doc, "Modified", $"Modified Attribute {item.Key}");
-                //    }
-                //}
+                foreach (var item in info)
+                {
+                    if (oldInfo.ContainsKey(item.Key) && oldInfo[item.Key] != item.Value)
+                    {
+                        AddChangeInfoRow(id, doc, "Modified", $"Modify Attribute - {item.Key}");
+                    }
+                }
+                elementsDb[id] = info;
 
             }
 
@@ -272,7 +274,17 @@ namespace Revit.ChangesMonitor
             foreach (Parameter para in element.Parameters)
             {
                 var result = GetParameterInformation(para, document);
-                ret.Add(result.Key, result.Value);
+                if (ret.ContainsKey(result.Key))
+                {
+                    var oldValue = ret[result.Key];
+                    if (oldValue != result.Value)
+                    {
+                        var message = $"Element has a dupplicate parameter ({result.Key}) with different values ({oldValue} and {result.Value})";
+                        Debug.WriteLine(message);
+                        throw new InvalidOperationException(message); 
+                    }
+                }
+                ret[result.Key] = result.Value;
             }
 
             return ret;
