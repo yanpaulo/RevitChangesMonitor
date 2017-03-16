@@ -107,7 +107,7 @@ namespace Revit.ChangesMonitor
                 {
                     foreach (DataRow row in _dataTable.Rows)
                     {
-                        writer.WriteLine (string.Join(";", row.ItemArray.Select(c => c.ToString())));
+                        writer.WriteLine (string.Join("\t", row.ItemArray.Select(c => c.ToString())));
                     }
 
                     writer.Close();
