@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -38,6 +39,8 @@ namespace Revit.ChangesMonitor
     /// </summary>
     public partial class ChangesInformationForm : Form
     {
+        private DataTable _dataTable;
+
         /// <summary>
         /// Default constructor.
         /// </summary>
@@ -53,6 +56,7 @@ namespace Revit.ChangesMonitor
         public ChangesInformationForm(DataTable dataBuffer)
             : this()
         {
+            _dataTable = dataBuffer;
             changesdataGridView.DataSource = dataBuffer;
             changesdataGridView.AutoGenerateColumns = false;
             changesdataGridView.Columns["Time"].DefaultCellStyle.Format = "O";
@@ -86,6 +90,29 @@ namespace Revit.ChangesMonitor
         private void topMostCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             TopMost = topMostCheckBox.Checked;
+        }
+
+        private void exportButton_Click(object sender, EventArgs e)
+        {
+            var dialog = new SaveFileDialog
+            {
+                DefaultExt = "csv",
+                FileName = "revit-log",
+                Filter = "CSV File|*.csv"
+            };
+            var result = dialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                using (var writer = new StreamWriter(dialog.OpenFile()))
+                {
+                    foreach (DataRow row in _dataTable.Rows)
+                    {
+                        writer.WriteLine (string.Join(";", row.ItemArray.Select(c => c.ToString())));
+                    }
+
+                    writer.Close();
+                }
+            }
         }
     }
 }

@@ -52,6 +52,7 @@ namespace Revit.ChangesMonitor
         {
             this.changesdataGridView = new System.Windows.Forms.DataGridView();
             this.topMostCheckBox = new System.Windows.Forms.CheckBox();
+            this.exportButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.changesdataGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -59,8 +60,8 @@ namespace Revit.ChangesMonitor
             // 
             this.changesdataGridView.AllowUserToAddRows = false;
             this.changesdataGridView.AllowUserToDeleteRows = false;
-            this.changesdataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.changesdataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.changesdataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.changesdataGridView.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
@@ -85,11 +86,23 @@ namespace Revit.ChangesMonitor
             this.topMostCheckBox.UseVisualStyleBackColor = true;
             this.topMostCheckBox.CheckedChanged += new System.EventHandler(this.topMostCheckBox_CheckedChanged);
             // 
+            // exportButton
+            // 
+            this.exportButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.exportButton.Location = new System.Drawing.Point(587, 241);
+            this.exportButton.Name = "exportButton";
+            this.exportButton.Size = new System.Drawing.Size(75, 23);
+            this.exportButton.TabIndex = 2;
+            this.exportButton.Text = "Exportar";
+            this.exportButton.UseVisualStyleBackColor = true;
+            this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
+            // 
             // ChangesInformationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(664, 267);
+            this.Controls.Add(this.exportButton);
             this.Controls.Add(this.topMostCheckBox);
             this.Controls.Add(this.changesdataGridView);
             this.MaximizeBox = false;
@@ -108,5 +121,6 @@ namespace Revit.ChangesMonitor
 
         private System.Windows.Forms.DataGridView changesdataGridView;
         private System.Windows.Forms.CheckBox topMostCheckBox;
+        private System.Windows.Forms.Button exportButton;
     }
 }
