@@ -23,6 +23,7 @@
 using System;
 using System.IO;
 using System.Data;
+using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
@@ -111,10 +112,31 @@ namespace Revit.ChangesMonitor
             // register the DocumentChanged event
             m_CtrlApp.DocumentChanged += new EventHandler<Autodesk.Revit.DB.Events.DocumentChangedEventArgs>(CtrlApp_DocumentChanged);
 
+            m_CtrlApp.DocumentClosed += CtrlApp_DocumentClosed;
+
             // show dialog
             m_InfoForm.Show();
 
             return Result.Succeeded;
+        }
+
+        private void CtrlApp_DocumentClosed(object sender, Autodesk.Revit.DB.Events.DocumentClosedEventArgs e)
+        {
+            string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssfff"),
+                userName = Environment.UserName;
+
+            var filename = $"{documentsDir}\\{timeStamp}-{userName}.csv";
+
+            using (var writer = new StreamWriter(filename))
+            {
+                foreach (DataRow row in m_ChangesInfoTable.Rows)
+                {
+                    writer.WriteLine(string.Join("\t", row.ItemArray.Select(c => c.ToString())));
+                }
+
+                writer.Close();
+            }
         }
 
         /// <summary>
