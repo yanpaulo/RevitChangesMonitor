@@ -53,6 +53,7 @@ namespace Revit.ChangesMonitor
             this.changesdataGridView = new System.Windows.Forms.DataGridView();
             this.topMostCheckBox = new System.Windows.Forms.CheckBox();
             this.exportButton = new System.Windows.Forms.Button();
+            this.clearButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.changesdataGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -97,11 +98,22 @@ namespace Revit.ChangesMonitor
             this.exportButton.UseVisualStyleBackColor = true;
             this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
             // 
+            // clearButton
+            // 
+            this.clearButton.Location = new System.Drawing.Point(506, 241);
+            this.clearButton.Name = "clearButton";
+            this.clearButton.Size = new System.Drawing.Size(75, 23);
+            this.clearButton.TabIndex = 3;
+            this.clearButton.Text = "Limpar";
+            this.clearButton.UseVisualStyleBackColor = true;
+            this.clearButton.Click += new System.EventHandler(this.clearButton_Click);
+            // 
             // ChangesInformationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(664, 267);
+            this.Controls.Add(this.clearButton);
             this.Controls.Add(this.exportButton);
             this.Controls.Add(this.topMostCheckBox);
             this.Controls.Add(this.changesdataGridView);
@@ -122,5 +134,6 @@ namespace Revit.ChangesMonitor
         private System.Windows.Forms.DataGridView changesdataGridView;
         private System.Windows.Forms.CheckBox topMostCheckBox;
         private System.Windows.Forms.Button exportButton;
+        private System.Windows.Forms.Button clearButton;
     }
 }

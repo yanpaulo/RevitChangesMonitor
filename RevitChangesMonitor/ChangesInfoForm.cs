@@ -114,5 +114,10 @@ namespace Revit.ChangesMonitor
                 }
             }
         }
+
+        private void clearButton_Click(object sender, EventArgs e)
+        {
+            _dataTable.Clear();
+        }
     }
 }
