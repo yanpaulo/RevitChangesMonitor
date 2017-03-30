@@ -103,7 +103,7 @@ namespace Revit.ChangesMonitor
         public Result OnStartup(UIControlledApplication application)
         {
             elementsDb = new Dictionary<ElementId, Dictionary<string, string>>();
-
+            
             // initialize member variables.
             m_CtrlApp = application.ControlledApplication;
             m_ChangesInfoTable = CreateChangeInfoTable();
@@ -111,23 +111,24 @@ namespace Revit.ChangesMonitor
 
             // register the DocumentChanged event
             m_CtrlApp.DocumentChanged += new EventHandler<Autodesk.Revit.DB.Events.DocumentChangedEventArgs>(CtrlApp_DocumentChanged);
-
-            m_CtrlApp.DocumentClosed += CtrlApp_DocumentClosed;
+            
+            m_CtrlApp.DocumentClosing += CtrlApp_DocumentClosing;
 
             // show dialog
             m_InfoForm.Show();
 
             return Result.Succeeded;
         }
-
-        private void CtrlApp_DocumentClosed(object sender, Autodesk.Revit.DB.Events.DocumentClosedEventArgs e)
+        
+        private void CtrlApp_DocumentClosing(object sender, Autodesk.Revit.DB.Events.DocumentClosingEventArgs e)
         {
             string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssfff"),
+                fileName = e.Document.Title,
                 userName = Environment.UserName;
 
-            var filename = $"{documentsDir}\\{timeStamp}-{userName}.csv";
-
+            var filename = $"{documentsDir}\\{fileName}-{userName}.csv";
+            
             using (var writer = new StreamWriter(filename))
             {
                 foreach (DataRow row in m_ChangesInfoTable.Rows)
