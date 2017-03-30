@@ -65,6 +65,8 @@ namespace Revit.ChangesMonitor
 
 
         private static Dictionary<ElementId, Dictionary<string, string>> elementsDb;
+
+        private static Dictionary<Document, List<DocumentChangeInfo>> changesInfo;
         #endregion
 
         #region Class Static Property
@@ -103,7 +105,8 @@ namespace Revit.ChangesMonitor
         public Result OnStartup(UIControlledApplication application)
         {
             elementsDb = new Dictionary<ElementId, Dictionary<string, string>>();
-            
+            changesInfo = new Dictionary<Document, List<ChangesMonitor.DocumentChangeInfo>>();
+
             // initialize member variables.
             m_CtrlApp = application.ControlledApplication;
             m_ChangesInfoTable = CreateChangeInfoTable();
@@ -172,6 +175,11 @@ namespace Revit.ChangesMonitor
             // get the current document.
             Document doc = e.GetDocument();
             var transactionNames = string.Join("; ", e.GetTransactionNames());
+            if (!changesInfo.ContainsKey(doc))
+            {
+                changesInfo.Add(doc, new List<ChangesMonitor.DocumentChangeInfo>());
+            }
+
             // dump the element information
             ICollection<ElementId> addedElem = e.GetAddedElementIds();
             foreach (ElementId id in addedElem)
@@ -227,30 +235,35 @@ namespace Revit.ChangesMonitor
             // retrieve the changed element
             Element elem = doc.GetElement(id);
 
-            DataRow newRow = m_ChangesInfoTable.NewRow();
+            //DataRow newRow = m_ChangesInfoTable.NewRow();
+            var changeInfo = new DocumentChangeInfo();
 
             // set the relative information of this event into the table.
             if (elem == null)
             {
                 // this branch is for deleted element due to the deleted element cannot be retrieve from the document.
-                newRow["Time"] = DateTime.Now;
-                newRow["Transaction"] = transactionName;
-                newRow["ChangeType"] = changeType;
-                newRow["Name"] = "";
-                newRow["Category"] = "";
+                changeInfo.Time = DateTime.Now;
+                changeInfo.Transaction = transactionName;
+                changeInfo.ChangeType = changeType;
+                changeInfo.Name = "";
+                changeInfo.Category = "";
 
             }
             else
             {
-                newRow["Time"] = DateTime.Now;
-                newRow["Transaction"] = transactionName;
-                newRow["ChangeType"] = changeType;
-                newRow["Name"] = elem.Name;
-                newRow["Category"] = elem.Category?.Name;
+                changeInfo.Time = DateTime.Now;
+                changeInfo.Transaction = transactionName;
+                changeInfo.ChangeType = changeType;
+                changeInfo.Name = elem.Name;
+                changeInfo.Category = elem.Category?.Name;
             }
+            
+            var newRow = changeInfo.AsDataRow(m_ChangesInfoTable);
 
+            changesInfo[doc].Add(changeInfo);
             m_ChangesInfoTable.Rows.Add(newRow);
         }
+        
 
         /// <summary>
         /// Generate a data table with five columns for display in window
