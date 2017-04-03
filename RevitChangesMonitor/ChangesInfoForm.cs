@@ -107,7 +107,7 @@ namespace Revit.ChangesMonitor
                 {
                     foreach (DataRow row in _dataTable.Rows)
                     {
-                        writer.WriteLine (string.Join("\t", row.ItemArray.Select(c => c.ToString())));
+                        writer.WriteLine(string.Join("\t", row.ItemArray.Select(c => c.ToString())));
                     }
 
                     writer.Close();
@@ -119,5 +119,88 @@ namespace Revit.ChangesMonitor
         {
             _dataTable.Clear();
         }
+
+        private void reportButton_Click(object sender, EventArgs e)
+        {
+            var sb = new StringBuilder();
+            var data = ExternalApplication.DocumentChangesInfo;
+            var totalCategoryScore = new Dictionary<string, int>
+            {
+                {"Geral", 0 },
+                {"Architecture", 0 },
+                {"Interiors", 0 },
+                {"Landscape", 0 },
+                {"Structural", 0 },
+                {"Electrical", 0 },
+                {"HVAC", 0 },
+                {"Plumbing", 0 }
+            };
+            var changeTemplate = new List<KeyValuePair<int, DocumentChangeInfo>>
+            {
+                new KeyValuePair<int, DocumentChangeInfo>
+                    (1,  new DocumentChangeInfo { Transaction = "Wall - Line", ChangeType = "Added", Category = "Walls" }),
+                new KeyValuePair<int, DocumentChangeInfo>
+                    (2,  new DocumentChangeInfo { Transaction = "Wall", ChangeType = "Added", Category = "Walls" })
+            };
+            
+            foreach (var ctPair in changeTemplate)
+            {
+                int key = ctPair.Key;
+                var template = ctPair.Value;
+
+                int score = 0;
+                Dictionary<string, int> categoryScore = new Dictionary<string, int>();
+                int count = data.Count(c => c.Transaction == template.Transaction && c.ChangeType == template.ChangeType && c.Category == template.Category);
+                
+                if (key == 1 || key == 2)
+                {
+                    categoryScore = new Dictionary<string, int>
+                        {
+                            {"Geral", 1 },
+                            {"Architecture", 2 },
+                            {"Interiors", 1 },
+                            {"Landscape", 0 },
+                            {"Structural", 1 },
+                            {"Electrical", 0 },
+                            {"HVAC", 0 },
+                            {"Plumbing", 0 }
+                        };
+
+                    score = count;
+                    if (count >= 2 && count <= 5)
+                    {
+                        score = 2;
+                    }
+                    if (count >= 6 && count <= 10)
+                    {
+                        score = 4;
+                    }
+                    if (count >= 11)
+                    {
+                        score = 8;
+                    }
+                }
+
+                foreach (var csPair in categoryScore.ToList())
+                {
+                    categoryScore[csPair.Key] = csPair.Value * score;
+                    totalCategoryScore[csPair.Key] += csPair.Value * score;
+                }
+
+                sb.AppendLine($"{template.Transaction};\t{template.ChangeType};\t{template.Category}");
+                sb.AppendLine(
+                    string.Join(",", categoryScore.Select(c => $"{c.Key}: {c.Value}"))
+                );
+                sb.AppendLine();
+            }
+            sb.AppendLine($"Total:");
+            sb.AppendLine(
+                    string.Join(",", totalCategoryScore.Select(c => $"{c.Key}: {c.Value}"))
+            );
+
+            MessageBox.Show(sb.ToString());
+        }
+
+        
     }
 }

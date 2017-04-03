@@ -87,6 +87,8 @@ namespace Revit.ChangesMonitor
             get { return ExternalApplication.m_InfoForm; }
             set { ExternalApplication.m_InfoForm = value; }
         }
+
+        public static List<DocumentChangeInfo> DocumentChangesInfo => changesInfo.First().Value;
         #endregion
 
         #region IExternalApplication Members
