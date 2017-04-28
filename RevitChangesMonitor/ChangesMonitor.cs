@@ -63,10 +63,9 @@ namespace Revit.ChangesMonitor
         /// </summary>
         private static ChangesInformationForm m_InfoForm;
 
+        private static Dictionary<Document, DocumentState> _documentStates;
 
-        private static Dictionary<ElementId, Dictionary<string, string>> elementsDb;
-
-        private static Dictionary<Document, List<DocumentChangeInfo>> changesInfo;
+        private static Document _activeDocument;
         #endregion
 
         #region Class Static Property
@@ -87,8 +86,9 @@ namespace Revit.ChangesMonitor
             get { return ExternalApplication.m_InfoForm; }
             set { ExternalApplication.m_InfoForm = value; }
         }
+        private static DocumentState ActiveDocumentState => _documentStates[_activeDocument];
 
-        public static List<DocumentChangeInfo> DocumentChangesInfo => changesInfo.First().Value;
+        public static List<DocumentChangeInfo> DocumentChangesInfo => ActiveDocumentState.Changes;
         #endregion
 
         #region IExternalApplication Members
@@ -106,17 +106,18 @@ namespace Revit.ChangesMonitor
         /// failed to load and the release the internal reference.</returns>
         public Result OnStartup(UIControlledApplication application)
         {
-            elementsDb = new Dictionary<ElementId, Dictionary<string, string>>();
-            changesInfo = new Dictionary<Document, List<ChangesMonitor.DocumentChangeInfo>>();
+            _documentStates = new Dictionary<Document, ChangesMonitor.DocumentState>();
 
             // initialize member variables.
             m_CtrlApp = application.ControlledApplication;
             m_ChangesInfoTable = CreateChangeInfoTable();
             m_InfoForm = new ChangesInformationForm(ChangesInfoTable);
 
+            application.ViewActivated += Application_ViewActivated;
+            
             // register the DocumentChanged event
             m_CtrlApp.DocumentChanged += new EventHandler<Autodesk.Revit.DB.Events.DocumentChangedEventArgs>(CtrlApp_DocumentChanged);
-            
+
             m_CtrlApp.DocumentClosing += CtrlApp_DocumentClosing;
 
             // show dialog
@@ -124,7 +125,27 @@ namespace Revit.ChangesMonitor
 
             return Result.Succeeded;
         }
-        
+
+        private void Application_ViewActivated(object sender, Autodesk.Revit.UI.Events.ViewActivatedEventArgs e)
+        {
+            var doc = e.Document;
+            var dt = m_ChangesInfoTable;
+
+            _activeDocument = doc;
+            if (!_documentStates.ContainsKey(doc))
+            {
+                _documentStates.Add(doc, new ChangesMonitor.DocumentState());
+            }
+            
+            dt.Clear();
+
+            foreach (var row in ActiveDocumentState.Changes.Select(c => c.AsDataRow(dt)))
+                m_ChangesInfoTable.Rows.Add(row);
+
+
+
+        }
+
         private void CtrlApp_DocumentClosing(object sender, Autodesk.Revit.DB.Events.DocumentClosingEventArgs e)
         {
             string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -133,7 +154,7 @@ namespace Revit.ChangesMonitor
                 userName = Environment.UserName;
 
             var filename = $"{documentsDir}\\{fileName}-{userName}.csv";
-            
+
             using (var writer = new StreamWriter(filename))
             {
                 foreach (DataRow row in m_ChangesInfoTable.Rows)
@@ -177,10 +198,6 @@ namespace Revit.ChangesMonitor
             // get the current document.
             Document doc = e.GetDocument();
             var transactionNames = string.Join("; ", e.GetTransactionNames());
-            if (!changesInfo.ContainsKey(doc))
-            {
-                changesInfo.Add(doc, new List<ChangesMonitor.DocumentChangeInfo>());
-            }
 
             // dump the element information
             ICollection<ElementId> addedElem = e.GetAddedElementIds();
@@ -188,7 +205,7 @@ namespace Revit.ChangesMonitor
             {
                 Element elem = doc.GetElement(id);
                 var info = GetElementParameterInformation(doc, elem);
-                elementsDb.Add(id, info);
+                ActiveDocumentState.Elements.Add(id, info);
 
                 AddChangeInfoRow(id, doc, "Added", transactionNames);
             }
@@ -203,7 +220,7 @@ namespace Revit.ChangesMonitor
             foreach (ElementId id in modifiedElem)
             {
                 Element elem = doc.GetElement(id);
-                var oldInfo = elementsDb[id];
+                var oldInfo = ActiveDocumentState.Elements[id];
                 var info = GetElementParameterInformation(doc, elem);
                 AddChangeInfoRow(id, doc, "Modified", transactionNames);
                 foreach (var item in info)
@@ -213,7 +230,7 @@ namespace Revit.ChangesMonitor
                         AddChangeInfoRow(id, doc, "Modified", $"Modify Attribute - {item.Key}");
                     }
                 }
-                elementsDb[id] = info;
+                ActiveDocumentState.Elements[id] = info;
 
             }
 
@@ -259,13 +276,13 @@ namespace Revit.ChangesMonitor
                 changeInfo.Name = elem.Name;
                 changeInfo.Category = elem.Category?.Name;
             }
-            
+
             var newRow = changeInfo.AsDataRow(m_ChangesInfoTable);
 
-            changesInfo[doc].Add(changeInfo);
+            DocumentChangesInfo.Add(changeInfo);
             m_ChangesInfoTable.Rows.Add(newRow);
         }
-        
+
 
         /// <summary>
         /// Generate a data table with five columns for display in window
@@ -319,7 +336,7 @@ namespace Revit.ChangesMonitor
                     {
                         var message = $"Element has a dupplicate parameter ({result.Key}) with different values ({oldValue} and {result.Value})";
                         Debug.WriteLine(message);
-                        throw new InvalidOperationException(message); 
+                        throw new InvalidOperationException(message);
                     }
                 }
                 ret[result.Key] = result.Value;

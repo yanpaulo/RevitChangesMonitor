@@ -84,6 +84,7 @@
     </Compile>
     <Compile Include="ChangesMonitor.cs" />
     <Compile Include="DocumentChangeInfo.cs" />
+    <Compile Include="DocumentState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
