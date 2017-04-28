@@ -114,7 +114,7 @@ namespace Revit.ChangesMonitor
             m_InfoForm = new ChangesInformationForm(ChangesInfoTable);
 
             application.ViewActivated += Application_ViewActivated;
-            
+
             // register the DocumentChanged event
             m_CtrlApp.DocumentChanged += new EventHandler<Autodesk.Revit.DB.Events.DocumentChangedEventArgs>(CtrlApp_DocumentChanged);
 
@@ -131,12 +131,7 @@ namespace Revit.ChangesMonitor
             var doc = e.Document;
             var dt = m_ChangesInfoTable;
 
-            _activeDocument = doc;
-            if (!_documentStates.ContainsKey(doc))
-            {
-                _documentStates.Add(doc, new ChangesMonitor.DocumentState());
-            }
-            
+            _activeDocument = doc;          
             dt.Clear();
 
             foreach (var row in ActiveDocumentState.Changes.Select(c => c.AsDataRow(dt)))
@@ -198,6 +193,12 @@ namespace Revit.ChangesMonitor
             // get the current document.
             Document doc = e.GetDocument();
             var transactionNames = string.Join("; ", e.GetTransactionNames());
+            
+            if (!_documentStates.ContainsKey(doc))
+            {
+                _documentStates.Add(doc, new ChangesMonitor.DocumentState());
+            }
+            var documentState = _documentStates[doc];
 
             // dump the element information
             ICollection<ElementId> addedElem = e.GetAddedElementIds();
@@ -205,7 +206,7 @@ namespace Revit.ChangesMonitor
             {
                 Element elem = doc.GetElement(id);
                 var info = GetElementParameterInformation(doc, elem);
-                ActiveDocumentState.Elements.Add(id, info);
+                documentState.Elements.Add(id, info);
 
                 AddChangeInfoRow(id, doc, "Added", transactionNames);
             }
@@ -220,7 +221,7 @@ namespace Revit.ChangesMonitor
             foreach (ElementId id in modifiedElem)
             {
                 Element elem = doc.GetElement(id);
-                var oldInfo = ActiveDocumentState.Elements[id];
+                var oldInfo = documentState.Elements[id];
                 var info = GetElementParameterInformation(doc, elem);
                 AddChangeInfoRow(id, doc, "Modified", transactionNames);
                 foreach (var item in info)
@@ -230,8 +231,7 @@ namespace Revit.ChangesMonitor
                         AddChangeInfoRow(id, doc, "Modified", $"Modify Attribute - {item.Key}");
                     }
                 }
-                ActiveDocumentState.Elements[id] = info;
-
+                documentState.Elements[id] = info;
             }
 
             if (addedElem.Count == 0 && deletedElem.Count == 0 && modifiedElem.Count == 0)
@@ -276,11 +276,13 @@ namespace Revit.ChangesMonitor
                 changeInfo.Name = elem.Name;
                 changeInfo.Category = elem.Category?.Name;
             }
+            _documentStates[doc].Changes.Add(changeInfo);
 
-            var newRow = changeInfo.AsDataRow(m_ChangesInfoTable);
-
-            DocumentChangesInfo.Add(changeInfo);
-            m_ChangesInfoTable.Rows.Add(newRow);
+            if (doc.Equals(_activeDocument))
+            {
+                var newRow = changeInfo.AsDataRow(m_ChangesInfoTable);
+                m_ChangesInfoTable.Rows.Add(newRow); 
+            }
         }
 
 
