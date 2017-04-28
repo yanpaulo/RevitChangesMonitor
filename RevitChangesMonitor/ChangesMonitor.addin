@@ -2,14 +2,14 @@
 <RevitAddIns>
   <AddIn Type="Application">
     <Name>Revit Changes Monitor</Name>
-    <Assembly>C:\Program Files\Revit Changes Monitor\ChangesMonitor.dll</Assembly>
+    <Assembly>C:\Program Files\Revit Changes Monitor\ChangesMonitor.Addin.dll</Assembly>
     <ClientId>ebae9def-6cd3-456f-98a4-cfe06c362af5</ClientId>
     <FullClassName>Revit.ChangesMonitor.ExternalApplication</FullClassName>
     <VendorId>INB</VendorId>
     <VendorDescription>Instituto Nobre Barreto, www.inb.com.br</VendorDescription>
   </AddIn>
   <AddIn Type="Command">
-    <Assembly>C:\Program Files\Revit Changes Monitor\ChangesMonitor.dll</Assembly>
+    <Assembly>C:\Program Files\Revit Changes Monitor\ChangesMonitor.Addin.dll</Assembly>
     <ClientId>152051df-aa75-463f-a722-b8b1bca5d88c</ClientId>
     <FullClassName>Revit.ChangesMonitor.Command</FullClassName>
     <Text>Revit Changes Monitor</Text>

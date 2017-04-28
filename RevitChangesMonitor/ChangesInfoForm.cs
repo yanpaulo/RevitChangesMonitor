@@ -30,7 +30,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Revit.ChangesMonitor
+namespace RevitChangesMonitor.Addin
 {
     /// <summary>
     /// The UI to show the change history logs. This class is not the main one just a assistant

@@ -33,7 +33,7 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.ApplicationServices;
 
-namespace Revit.ChangesMonitor
+namespace RevitChangesMonitor.Addin
 {
     /// <summary>
     /// A class inherits IExternalApplication interface and provide an entry of the sample.
@@ -106,7 +106,7 @@ namespace Revit.ChangesMonitor
         /// failed to load and the release the internal reference.</returns>
         public Result OnStartup(UIControlledApplication application)
         {
-            _documentStates = new Dictionary<Document, ChangesMonitor.DocumentState>();
+            _documentStates = new Dictionary<Document, DocumentState>();
 
             // initialize member variables.
             m_CtrlApp = application.ControlledApplication;
@@ -196,7 +196,7 @@ namespace Revit.ChangesMonitor
             
             if (!_documentStates.ContainsKey(doc))
             {
-                _documentStates.Add(doc, new ChangesMonitor.DocumentState());
+                _documentStates.Add(doc, new DocumentState());
             }
             var documentState = _documentStates[doc];
 

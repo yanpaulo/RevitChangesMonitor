@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RevitChangesMonitor", "RevitChangesMonitor\RevitChangesMonitor.csproj", "{1C6B9634-D463-43C1-A8C5-B94AE7615384}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RevitChangesMonitor.Addin", "RevitChangesMonitor\RevitChangesMonitor.Addin.csproj", "{1C6B9634-D463-43C1-A8C5-B94AE7615384}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "RevitChangesMonitor.Setup", "RevitChangesMonitor.Setup\RevitChangesMonitor.Setup.vdproj", "{20431787-AF55-4BE5-8A52-A79AE10D9C62}"
 EndProject

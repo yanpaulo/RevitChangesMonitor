@@ -20,7 +20,7 @@
 // (Rights in Technical Data and Computer Software), as applicable.
 //
 
-namespace Revit.ChangesMonitor
+namespace RevitChangesMonitor.Addin
 {
     partial class ChangesInformationForm
     {

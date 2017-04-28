@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Revit.ChangesMonitor
+namespace RevitChangesMonitor.Addin
 {
     public class DocumentChangeInfo
     {

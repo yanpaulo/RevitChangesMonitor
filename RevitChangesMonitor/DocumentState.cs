@@ -1,7 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using System.Collections.Generic;
 
-namespace Revit.ChangesMonitor
+namespace RevitChangesMonitor.Addin
 {
     internal class DocumentState
     {
