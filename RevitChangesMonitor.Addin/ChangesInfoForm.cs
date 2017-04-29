@@ -123,7 +123,7 @@ namespace RevitChangesMonitor.Addin
         private void reportButton_Click(object sender, EventArgs e)
         {
             var sb = new StringBuilder();
-            var data = ExternalApplication.DocumentChangesInfo;
+            var data = AppContext.Instance.ActiveDocumentChangesInfo;
             var totalCategoryScore = new Dictionary<string, int>
             {
                 {"Geral", 0 },

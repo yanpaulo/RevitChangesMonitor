@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RevitChangesMonitor.Addin
 {
-    internal class DocumentState
+    public class DocumentState
     {
         public Dictionary<ElementId, Dictionary<string, string>> Elements { get; set; }
             = new Dictionary<ElementId, Dictionary<string, string>>();

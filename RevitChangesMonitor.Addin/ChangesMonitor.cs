@@ -44,52 +44,7 @@ namespace RevitChangesMonitor.Addin
     [Autodesk.Revit.Attributes.Journaling(Autodesk.Revit.Attributes.JournalingMode.NoCommandData)]
     public class ExternalApplication : IExternalApplication
     {
-        #region  Class Member Variables
-        /// <summary>
-        /// A controlled application used to register the DocumentChanged event. Because all trigger points
-        /// in this sample come from UI, the event must be registered to ControlledApplication. 
-        /// If the trigger point is from API, user can register it to application 
-        /// which can retrieve from ExternalCommand.
-        /// </summary>
-        private static ControlledApplication m_CtrlApp;
-
-        /// <summary>
-        /// data table for information windows.
-        /// </summary>
-        private static DataTable m_ChangesInfoTable;
-
-        /// <summary>
-        /// The window is used to show changes' information.
-        /// </summary>
-        private static ChangesInformationForm m_InfoForm;
-
-        private static Dictionary<Document, DocumentState> _documentStates;
-
-        private static Document _activeDocument;
-        #endregion
-
-        #region Class Static Property
-        /// <summary>
-        /// Property to get and set private member variables of changes log information.
-        /// </summary>
-        public static DataTable ChangesInfoTable
-        {
-            get { return m_ChangesInfoTable; }
-            set { m_ChangesInfoTable = value; }
-        }
-
-        /// <summary>
-        /// Property to get and set private member variables of info form.
-        /// </summary>
-        public static ChangesInformationForm InfoForm
-        {
-            get { return ExternalApplication.m_InfoForm; }
-            set { ExternalApplication.m_InfoForm = value; }
-        }
-        private static DocumentState ActiveDocumentState => _documentStates[_activeDocument];
-
-        public static List<DocumentChangeInfo> DocumentChangesInfo => ActiveDocumentState.Changes;
-        #endregion
+        private AppContext _context = AppContext.Instance;
 
         #region IExternalApplication Members
         /// <summary>
@@ -106,61 +61,23 @@ namespace RevitChangesMonitor.Addin
         /// failed to load and the release the internal reference.</returns>
         public Result OnStartup(UIControlledApplication application)
         {
-            _documentStates = new Dictionary<Document, DocumentState>();
-
             // initialize member variables.
-            m_CtrlApp = application.ControlledApplication;
-            m_ChangesInfoTable = CreateChangeInfoTable();
-            m_InfoForm = new ChangesInformationForm(ChangesInfoTable);
+            _context.ControlledApp = application.ControlledApplication;
+            _context.ChangesInformationForm = new ChangesInformationForm(_context.ChangesInfoTable);
 
             application.ViewActivated += Application_ViewActivated;
 
             // register the DocumentChanged event
-            m_CtrlApp.DocumentChanged += new EventHandler<Autodesk.Revit.DB.Events.DocumentChangedEventArgs>(CtrlApp_DocumentChanged);
+            _context.ControlledApp.DocumentChanged += ControlledApp_DocumentChanged;
 
-            m_CtrlApp.DocumentClosing += CtrlApp_DocumentClosing;
+            _context.ControlledApp.DocumentClosing += ControlledApp_DocumentClosing;
 
             // show dialog
-            m_InfoForm.Show();
+            _context.ChangesInformationForm.Show();
 
             return Result.Succeeded;
         }
-
-        private void Application_ViewActivated(object sender, Autodesk.Revit.UI.Events.ViewActivatedEventArgs e)
-        {
-            var doc = e.Document;
-            var dt = m_ChangesInfoTable;
-
-            _activeDocument = doc;          
-            dt.Clear();
-
-            foreach (var row in ActiveDocumentState.Changes.Select(c => c.AsDataRow(dt)))
-                m_ChangesInfoTable.Rows.Add(row);
-
-
-
-        }
-
-        private void CtrlApp_DocumentClosing(object sender, Autodesk.Revit.DB.Events.DocumentClosingEventArgs e)
-        {
-            string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssfff"),
-                fileName = e.Document.Title,
-                userName = Environment.UserName;
-
-            var filename = $"{documentsDir}\\{fileName}-{userName}.csv";
-
-            using (var writer = new StreamWriter(filename))
-            {
-                foreach (DataRow row in m_ChangesInfoTable.Rows)
-                {
-                    writer.WriteLine(string.Join("\t", row.ItemArray.Select(c => c.ToString())));
-                }
-
-                writer.Close();
-            }
-        }
-
+        
         /// <summary>
         /// Implement this method to implement the external application which should be called when 
         /// Revit is about to exit,Any documents must have been closed before this method is called.
@@ -175,30 +92,63 @@ namespace RevitChangesMonitor.Addin
         /// application to shut down correctly.</returns>
         public Result OnShutdown(UIControlledApplication application)
         {
-            m_CtrlApp.DocumentChanged -= CtrlApp_DocumentChanged;
-            m_InfoForm = null;
-            m_ChangesInfoTable = null;
+            _context.ControlledApp.DocumentChanged -= ControlledApp_DocumentChanged;
+            _context.ChangesInformationForm = null;
+            //_context.ChangesInfoTable = null;
             return Result.Succeeded;
         }
         #endregion
 
         #region Event handler
+        private void Application_ViewActivated(object sender, Autodesk.Revit.UI.Events.ViewActivatedEventArgs e)
+        {
+            var doc = e.Document;
+            var dt = _context.ChangesInfoTable;
+
+            _context.ActiveDocument = doc;
+            dt.Clear();
+
+            foreach (var row in _context.ActiveDocumentState.Changes.Select(c => c.AsDataRow(dt)))
+                _context.ChangesInfoTable.Rows.Add(row);
+        }
+
+        private void ControlledApp_DocumentClosing(object sender, Autodesk.Revit.DB.Events.DocumentClosingEventArgs e)
+        {
+            string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssfff"),
+                fileName = e.Document.Title,
+                userName = Environment.UserName;
+
+            var filename = $"{documentsDir}\\{fileName}-{userName}.csv";
+
+            using (var writer = new StreamWriter(filename))
+            {
+                foreach (DataRow row in _context.DocumentStates[e.Document].Changes
+                    .Select(c => c.AsDataRow(_context.ChangesInfoTable)))
+                {
+                    writer.WriteLine(string.Join("\t", row.ItemArray.Select(c => c.ToString())));
+                }
+
+                writer.Close();
+            }
+        }
+
         /// <summary>
         /// This method is the event handler, which will dump the change information to tracking dialog
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void CtrlApp_DocumentChanged(object sender, Autodesk.Revit.DB.Events.DocumentChangedEventArgs e)
+        void ControlledApp_DocumentChanged(object sender, Autodesk.Revit.DB.Events.DocumentChangedEventArgs e)
         {
             // get the current document.
             Document doc = e.GetDocument();
             var transactionNames = string.Join("; ", e.GetTransactionNames());
             
-            if (!_documentStates.ContainsKey(doc))
+            if (!_context.DocumentStates.ContainsKey(doc))
             {
-                _documentStates.Add(doc, new DocumentState());
+                _context.DocumentStates.Add(doc, new DocumentState());
             }
-            var documentState = _documentStates[doc];
+            var documentState = _context.DocumentStates[doc];
 
             // dump the element information
             ICollection<ElementId> addedElem = e.GetAddedElementIds();
@@ -254,7 +204,7 @@ namespace RevitChangesMonitor.Addin
             // retrieve the changed element
             Element elem = doc.GetElement(id);
 
-            //DataRow newRow = m_ChangesInfoTable.NewRow();
+            //DataRow newRow = _context.ChangesInfoTable.NewRow();
             var changeInfo = new DocumentChangeInfo();
 
             // set the relative information of this event into the table.
@@ -276,54 +226,15 @@ namespace RevitChangesMonitor.Addin
                 changeInfo.Name = elem.Name;
                 changeInfo.Category = elem.Category?.Name;
             }
-            _documentStates[doc].Changes.Add(changeInfo);
+            _context.DocumentStates[doc].Changes.Add(changeInfo);
 
-            if (doc.Equals(_activeDocument))
+            if (doc.Equals(_context.ActiveDocument))
             {
-                var newRow = changeInfo.AsDataRow(m_ChangesInfoTable);
-                m_ChangesInfoTable.Rows.Add(newRow); 
+                var newRow = changeInfo.AsDataRow(_context.ChangesInfoTable);
+                _context.ChangesInfoTable.Rows.Add(newRow); 
             }
         }
-
-
-        /// <summary>
-        /// Generate a data table with five columns for display in window
-        /// </summary>
-        /// <returns>The DataTable to be displayed in window</returns>
-        private DataTable CreateChangeInfoTable()
-        {
-            // create a new dataTable
-            DataTable changesInfoTable = new DataTable("ChangesInfoTable");
-
-            // Create a "ChangeType" column. It will be "Added", "Deleted" and "Modified".
-            DataColumn timeColumn = new DataColumn("Time", typeof(System.DateTime));
-            timeColumn.Caption = "Time";
-            changesInfoTable.Columns.Add(timeColumn);
-
-            // Create a "Transaction" column. It will be the transaction.
-            DataColumn transactionColumn = new DataColumn("Transaction", typeof(System.String));
-            transactionColumn.Caption = "Transaction";
-            changesInfoTable.Columns.Add(transactionColumn);
-
-            // Create a "ChangeType" column. It will be "Added", "Deleted" and "Modified".
-            DataColumn styleColumn = new DataColumn("ChangeType", typeof(System.String));
-            styleColumn.Caption = "ChangeType";
-            changesInfoTable.Columns.Add(styleColumn);
-
-            // Create a "Name" column. It will be the Element Name
-            DataColumn nameColum = new DataColumn("Name", typeof(System.String));
-            nameColum.Caption = "Name";
-            changesInfoTable.Columns.Add(nameColum);
-
-            // Create a "Category" column. It will be the Category Name of the element.
-            DataColumn categoryColum = new DataColumn("Category", typeof(System.String));
-            categoryColum.Caption = "Category";
-            changesInfoTable.Columns.Add(categoryColum);
-
-            // return this data table 
-            return changesInfoTable;
-        }
-
+        
         Dictionary<string, string> GetElementParameterInformation(Document document, Element element)
         {
             var ret = new Dictionary<string, string>();
@@ -426,11 +337,13 @@ namespace RevitChangesMonitor.Addin
         /// the operation.</returns>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            if (ExternalApplication.InfoForm == null)
+            var context = AppContext.Instance;
+
+            if (context.ChangesInformationForm == null)
             {
-                ExternalApplication.InfoForm = new ChangesInformationForm(ExternalApplication.ChangesInfoTable);
+                context.ChangesInformationForm = new ChangesInformationForm(context.ChangesInfoTable);
             }
-            ExternalApplication.InfoForm.Show();
+            context.ChangesInformationForm.Show();
 
             return Result.Succeeded;
         }

@@ -76,6 +76,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppContext.cs" />
     <Compile Include="ChangesInfoForm.cs">
       <SubType>Form</SubType>
     </Compile>
