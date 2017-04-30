@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
+using RevitChangesMonitor.Addin.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,14 +15,10 @@ namespace RevitChangesMonitor.Addin
         public static AppContext Instance { get; } = new AppContext();
         private AppContext() { }
 
-        /// <summary>
-        /// A controlled application used to register the DocumentChanged event. Because all trigger points
-        /// in this sample come from UI, the event must be registered to ControlledApplication. 
-        /// If the trigger point is from API, user can register it to application 
-        /// which can retrieve from ExternalCommand.
-        /// </summary>
-        public ControlledApplication ControlledApp { get; set; }
+        public ExternalApplication ExternalApplication { get; set; }
 
+        public LoginInformation LoginInfo { get; set; }
+        
         /// <summary>
         /// data table for information windows.
         /// </summary>
@@ -39,8 +36,7 @@ namespace RevitChangesMonitor.Addin
         public DocumentState ActiveDocumentState => DocumentStates[ActiveDocument];
 
         public List<DocumentChangeInfo> ActiveDocumentChangesInfo => ActiveDocumentState.Changes;
-
-
+        
         /// <summary>
         /// Generate a data table with five columns for display in window
         /// </summary>

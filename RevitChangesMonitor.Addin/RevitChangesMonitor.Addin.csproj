@@ -86,11 +86,22 @@
     <Compile Include="ChangesMonitor.cs" />
     <Compile Include="DocumentChangeInfo.cs" />
     <Compile Include="DocumentState.cs" />
+    <Compile Include="LoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LoginForm.Designer.cs">
+      <DependentUpon>LoginForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LoginInformation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UserLoginEventHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ChangesInfoForm.resx">
       <DependentUpon>ChangesInfoForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LoginForm.resx">
+      <DependentUpon>LoginForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

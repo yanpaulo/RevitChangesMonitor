@@ -45,6 +45,15 @@ namespace RevitChangesMonitor.Addin
     public class ExternalApplication : IExternalApplication
     {
         private AppContext _context = AppContext.Instance;
+        /// <summary>
+        /// A controlled application used to register the DocumentChanged event. Because all trigger points
+        /// in this sample come from UI, the event must be registered to ControlledApplication. 
+        /// If the trigger point is from API, user can register it to application 
+        /// which can retrieve from ExternalCommand.
+        /// </summary>
+        private ControlledApplication _controlledApplication;
+        private UIControlledApplication _application;
+        private bool _isListening;
 
         #region IExternalApplication Members
         /// <summary>
@@ -61,23 +70,14 @@ namespace RevitChangesMonitor.Addin
         /// failed to load and the release the internal reference.</returns>
         public Result OnStartup(UIControlledApplication application)
         {
+            _context.ExternalApplication = this;
             // initialize member variables.
-            _context.ControlledApp = application.ControlledApplication;
-            _context.ChangesInformationForm = new ChangesInformationForm(_context.ChangesInfoTable);
-
-            application.ViewActivated += Application_ViewActivated;
-
-            // register the DocumentChanged event
-            _context.ControlledApp.DocumentChanged += ControlledApp_DocumentChanged;
-
-            _context.ControlledApp.DocumentClosing += ControlledApp_DocumentClosing;
-
-            // show dialog
-            _context.ChangesInformationForm.Show();
+            _application = application;
+            _controlledApplication = application.ControlledApplication;
+            TryListen();
 
             return Result.Succeeded;
         }
-        
         /// <summary>
         /// Implement this method to implement the external application which should be called when 
         /// Revit is about to exit,Any documents must have been closed before this method is called.
@@ -92,7 +92,7 @@ namespace RevitChangesMonitor.Addin
         /// application to shut down correctly.</returns>
         public Result OnShutdown(UIControlledApplication application)
         {
-            _context.ControlledApp.DocumentChanged -= ControlledApp_DocumentChanged;
+            _controlledApplication.DocumentChanged -= ControlledApp_DocumentChanged;
             _context.ChangesInformationForm = null;
             //_context.ChangesInfoTable = null;
             return Result.Succeeded;
@@ -143,7 +143,7 @@ namespace RevitChangesMonitor.Addin
             // get the current document.
             Document doc = e.GetDocument();
             var transactionNames = string.Join("; ", e.GetTransactionNames());
-            
+
             if (!_context.DocumentStates.ContainsKey(doc))
             {
                 _context.DocumentStates.Add(doc, new DocumentState());
@@ -193,6 +193,46 @@ namespace RevitChangesMonitor.Addin
         #endregion
 
         #region Class Methods
+        private void TryListen()
+        {
+            if (_context.LoginInfo != null)
+            {
+                Listen();
+            }
+            else
+            {
+                var logInEventHandler = new UserLoginEventHandler();
+                var logInExternalEvent = ExternalEvent.Create(logInEventHandler);
+                new LoginForm(logInExternalEvent).Show();
+            }
+        }
+        public void Listen()
+        {
+            if (!_isListening)
+            {
+                DisplayInfoForm();
+                RegisterEvents();
+                _isListening = true;
+            }
+        }
+
+        private void DisplayInfoForm()
+        {
+            if (_context.ChangesInformationForm != null)
+            {
+                _context.ChangesInformationForm = new ChangesInformationForm(_context.ChangesInfoTable);
+                // show dialog
+                _context.ChangesInformationForm.Show(); 
+            }
+        }
+
+        public void RegisterEvents()
+        {
+            _application.ViewActivated += Application_ViewActivated;
+            _controlledApplication.DocumentChanged += ControlledApp_DocumentChanged;
+            _controlledApplication.DocumentClosing += ControlledApp_DocumentClosing;
+        }
+
         /// <summary>
         /// This method is used to retrieve the changed element and add row to data table.
         /// </summary>
@@ -231,10 +271,10 @@ namespace RevitChangesMonitor.Addin
             if (doc.Equals(_context.ActiveDocument))
             {
                 var newRow = changeInfo.AsDataRow(_context.ChangesInfoTable);
-                _context.ChangesInfoTable.Rows.Add(newRow); 
+                _context.ChangesInfoTable.Rows.Add(newRow);
             }
         }
-        
+
         Dictionary<string, string> GetElementParameterInformation(Document document, Element element)
         {
             var ret = new Dictionary<string, string>();
