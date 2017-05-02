@@ -74,7 +74,7 @@ namespace RevitChangesMonitor.Addin
             // initialize member variables.
             _application = application;
             _controlledApplication = application.ControlledApplication;
-            TryListen();
+            _controlledApplication.ApplicationInitialized += (o, e) => TryListen();
 
             return Result.Succeeded;
         }
@@ -203,7 +203,7 @@ namespace RevitChangesMonitor.Addin
             {
                 var logInEventHandler = new UserLoginEventHandler();
                 var logInExternalEvent = ExternalEvent.Create(logInEventHandler);
-                new LoginForm(logInExternalEvent).Show();
+                new LoginForm(logInExternalEvent).ShowDialog();
             }
         }
         public void Listen()
@@ -222,7 +222,7 @@ namespace RevitChangesMonitor.Addin
             {
                 _context.ChangesInformationForm = new ChangesInformationForm(_context.ChangesInfoTable);
                 // show dialog
-                _context.ChangesInformationForm.Show(); 
+                _context.ChangesInformationForm.Show();
             }
         }
 
