@@ -17,6 +17,8 @@ namespace RevitChangesMonitor.Addin
 
         public ExternalApplication ExternalApplication { get; set; }
 
+        public WebService WebService { get; } = new WebService();
+
         public LoginInformation LoginInfo { get; set; }
         
         /// <summary>

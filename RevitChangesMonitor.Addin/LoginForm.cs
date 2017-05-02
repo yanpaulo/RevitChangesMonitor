@@ -21,15 +21,22 @@ namespace RevitChangesMonitor.Addin
             InitializeComponent();
         }
 
-        private void loginButton_Click(object sender, EventArgs e)
+        private async void loginButton_Click(object sender, EventArgs e)
         {
+            var context = AppContext.Instance;
+            var ws = context.WebService;
+
             if (string.IsNullOrEmpty(usernameTextBox.Text) || string.IsNullOrEmpty(passwordTextBox.Text))
             {
                 MessageBox.Show("Preencha com login e senha.");
                 return;
             }
-
-            var context = AppContext.Instance;
+            if (!await ws.Authenticate(usernameTextBox.Text, passwordTextBox.Text))
+            {
+                MessageBox.Show("Login ou senha inválidos.");
+                return;
+            }
+            
             context.LoginInfo = new Models.LoginInformation
             {
                 UserName = usernameTextBox.Text,
