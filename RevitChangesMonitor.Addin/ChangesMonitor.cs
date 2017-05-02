@@ -193,7 +193,7 @@ namespace RevitChangesMonitor.Addin
         #endregion
 
         #region Class Methods
-        private void TryListen()
+        public void TryListen()
         {
             if (_context.LoginInfo != null)
             {
@@ -218,7 +218,7 @@ namespace RevitChangesMonitor.Addin
 
         private void DisplayInfoForm()
         {
-            if (_context.ChangesInformationForm != null)
+            if (_context.ChangesInformationForm == null)
             {
                 _context.ChangesInformationForm = new ChangesInformationForm(_context.ChangesInfoTable);
                 // show dialog
@@ -379,11 +379,7 @@ namespace RevitChangesMonitor.Addin
         {
             var context = AppContext.Instance;
 
-            if (context.ChangesInformationForm == null)
-            {
-                context.ChangesInformationForm = new ChangesInformationForm(context.ChangesInfoTable);
-            }
-            context.ChangesInformationForm.Show();
+            context.ExternalApplication.TryListen();
 
             return Result.Succeeded;
         }
