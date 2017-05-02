@@ -77,6 +77,7 @@
             this.passwordTextBox.Name = "passwordTextBox";
             this.passwordTextBox.Size = new System.Drawing.Size(232, 20);
             this.passwordTextBox.TabIndex = 4;
+            this.passwordTextBox.UseSystemPasswordChar = true;
             // 
             // loginButton
             // 
@@ -100,10 +101,12 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.KeyPreview = true;
             this.MaximizeBox = false;
             this.Name = "LoginForm";
             this.Text = "Login";
             this.TopMost = true;
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.LoginForm_KeyPress);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -23,12 +23,31 @@ namespace RevitChangesMonitor.Addin
 
         private async void loginButton_Click(object sender, EventArgs e)
         {
+            await TryLogIn();
+        }
+
+        
+
+        private async void LoginForm_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            await TryLogIn();
+        }
+
+        private async Task TryLogIn()
+        {
             var context = AppContext.Instance;
             var ws = context.WebService;
 
-            if (string.IsNullOrEmpty(usernameTextBox.Text) || string.IsNullOrEmpty(passwordTextBox.Text))
+            if (string.IsNullOrEmpty(usernameTextBox.Text))
             {
                 MessageBox.Show("Preencha com login e senha.");
+                usernameTextBox.Focus();
+                return;
+            }
+            if (string.IsNullOrEmpty(passwordTextBox.Text))
+            {
+                MessageBox.Show("Preencha com login e senha.");
+                passwordTextBox.Focus();
                 return;
             }
             if (!await ws.Authenticate(usernameTextBox.Text, passwordTextBox.Text))
@@ -36,14 +55,15 @@ namespace RevitChangesMonitor.Addin
                 MessageBox.Show("Login ou senha inválidos.");
                 return;
             }
-            
+
             context.LoginInfo = new Models.LoginInformation
             {
                 UserName = usernameTextBox.Text,
                 Password = passwordTextBox.Text
             };
-            _logInExternalEvent.Raise();
+
             Close();
+            _logInExternalEvent.Raise();
         }
     }
 }
