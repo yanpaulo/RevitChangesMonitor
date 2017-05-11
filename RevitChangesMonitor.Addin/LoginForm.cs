@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.UI;
+using RevitChangesMonitor.Addin.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -64,6 +65,15 @@ namespace RevitChangesMonitor.Addin
                 UserName = usernameTextBox.Text,
                 Password = passwordTextBox.Text
             };
+            using (var db = new LocalDbContext())
+            {
+                if (db.LoginInformation.Any())
+                {
+                    db.LoginInformation.RemoveRange(db.LoginInformation.ToList());
+                }
+                db.LoginInformation.Add(context.LoginInfo);
+                db.SaveChanges();
+            }
 
             Close();
             _logInExternalEvent.Raise();

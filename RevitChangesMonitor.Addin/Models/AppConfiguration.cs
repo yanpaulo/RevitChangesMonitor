@@ -10,6 +10,6 @@ namespace RevitChangesMonitor.Addin.Models
     {
         public int Id { get; set; }
 
-        public string ReportsPath { get; set; }
+        public string ReportsPath { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
     }
 }

@@ -114,7 +114,7 @@ namespace RevitChangesMonitor.Addin
 
         private void ControlledApp_DocumentClosing(object sender, Autodesk.Revit.DB.Events.DocumentClosingEventArgs e)
         {
-            string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            string documentsDir = AppContext.Instance.Configuration.ReportsPath,
                 timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssfff"),
                 fileName = e.Document.Title,
                 userName = Environment.UserName;

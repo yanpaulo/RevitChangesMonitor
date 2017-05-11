@@ -15,12 +15,23 @@ namespace RevitChangesMonitor.Addin
         public static AppContext Instance { get; } = new AppContext();
         private AppContext() { }
 
+        public void Load()
+        {
+            using (var db = new LocalDbContext())
+            {
+                LoginInfo = db.LoginInformation.FirstOrDefault();
+                Configuration = db.AppConfiguration.FirstOrDefault() ?? new Models.AppConfiguration();
+            }
+        }
+
         public ExternalApplication ExternalApplication { get; set; }
 
         public WebService WebService { get; } = new WebService();
 
         public LoginInformation LoginInfo { get; set; }
-        
+
+        public AppConfiguration Configuration { get; set; }
+
         /// <summary>
         /// data table for information windows.
         /// </summary>
