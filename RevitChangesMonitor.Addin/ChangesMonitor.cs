@@ -70,6 +70,7 @@ namespace RevitChangesMonitor.Addin
         /// failed to load and the release the internal reference.</returns>
         public Result OnStartup(UIControlledApplication application)
         {
+            _context.Load();
             _context.ExternalApplication = this;
             // initialize member variables.
             _application = application;
