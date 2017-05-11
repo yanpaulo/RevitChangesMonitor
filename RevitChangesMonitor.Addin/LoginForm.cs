@@ -30,7 +30,10 @@ namespace RevitChangesMonitor.Addin
 
         private async void LoginForm_KeyPress(object sender, KeyPressEventArgs e)
         {
-            await TryLogIn();
+            if (e.KeyChar == 13)
+            {
+                await TryLogIn(); 
+            }
         }
 
         private async Task TryLogIn()
