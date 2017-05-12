@@ -70,12 +70,11 @@ namespace RevitChangesMonitor.Addin
         /// failed to load and the release the internal reference.</returns>
         public Result OnStartup(UIControlledApplication application)
         {
-            _context.Load();
-            _context.ExternalApplication = this;
-            // initialize member variables.
             _application = application;
             _controlledApplication = application.ControlledApplication;
-            _controlledApplication.ApplicationInitialized += (o, e) => TryListen();
+            _context.ExternalApplication = this;
+            _context.Load();
+            RegisterEvents();
 
             return Result.Succeeded;
         }
@@ -122,7 +121,7 @@ namespace RevitChangesMonitor.Addin
 
             var filename = $"{documentsDir}\\{fileName}-{userName}.csv";
 
-            using (var writer = new StreamWriter(filename))
+            using (var writer = new StreamWriter(filename, true))
             {
                 foreach (DataRow row in _context.DocumentStates[e.Document].Changes
                     .Select(c => c.AsDataRow(_context.ChangesInfoTable)))
@@ -194,11 +193,13 @@ namespace RevitChangesMonitor.Addin
         #endregion
 
         #region Class Methods
+        #region For a later moment
         public void TryListen()
         {
             if (_context.LoginInfo != null)
             {
                 Listen();
+                DisplayInfoForm();
             }
             else
             {
@@ -207,17 +208,18 @@ namespace RevitChangesMonitor.Addin
                 new LoginForm(logInExternalEvent).ShowDialog();
             }
         }
+
         public void Listen()
         {
             if (!_isListening)
             {
-                DisplayInfoForm();
                 RegisterEvents();
                 _isListening = true;
             }
-        }
+        } 
+        #endregion
 
-        private void DisplayInfoForm()
+        public void DisplayInfoForm()
         {
             if (_context.ChangesInformationForm == null)
             {
@@ -380,7 +382,7 @@ namespace RevitChangesMonitor.Addin
         {
             var context = AppContext.Instance;
 
-            context.ExternalApplication.TryListen();
+            context.ExternalApplication.DisplayInfoForm();
 
             return Result.Succeeded;
         }

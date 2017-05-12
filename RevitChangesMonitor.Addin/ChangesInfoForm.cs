@@ -201,6 +201,22 @@ namespace RevitChangesMonitor.Addin
             MessageBox.Show(sb.ToString());
         }
 
-        
+        private void locationButton_Click(object sender, EventArgs e)
+        {
+            var context = AppContext.Instance;
+            var config = context.Configuration;
+
+            var dialog = new FolderBrowserDialog()
+            {
+                SelectedPath = config.ReportsPath,
+                ShowNewFolderButton = true,
+            };
+            var result = dialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                config.ReportsPath = dialog.SelectedPath;
+                context.Save();
+            }
+        }
     }
 }

@@ -24,6 +24,37 @@ namespace RevitChangesMonitor.Addin
             }
         }
 
+        public void Save()
+        {
+            using (var db = new LocalDbContext())
+            {
+                if (LoginInfo != null)
+                {
+                    if (db.LoginInformation.Any())
+                    {
+                        db.LoginInformation.Attach(LoginInfo);
+                        db.Entry(LoginInfo).State = System.Data.Entity.EntityState.Modified;
+                    }
+                    else
+                    {
+                        db.LoginInformation.Add(LoginInfo);
+                    }
+                }
+
+                if (db.AppConfiguration.Any())
+                {
+                    db.AppConfiguration.Attach(Configuration);
+                    db.Entry(Configuration).State = System.Data.Entity.EntityState.Modified;
+                }
+                else
+                {
+                    db.AppConfiguration.Add(Configuration);
+                }
+
+                db.SaveChanges();
+            }
+        }
+
         public ExternalApplication ExternalApplication { get; set; }
 
         public WebService WebService { get; } = new WebService();

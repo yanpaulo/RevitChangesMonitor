@@ -55,6 +55,7 @@ namespace RevitChangesMonitor.Addin
             this.exportButton = new System.Windows.Forms.Button();
             this.clearButton = new System.Windows.Forms.Button();
             this.reportButton = new System.Windows.Forms.Button();
+            this.locationButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.changesdataGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -101,6 +102,7 @@ namespace RevitChangesMonitor.Addin
             // 
             // clearButton
             // 
+            this.clearButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.clearButton.Location = new System.Drawing.Point(506, 241);
             this.clearButton.Name = "clearButton";
             this.clearButton.Size = new System.Drawing.Size(75, 23);
@@ -111,6 +113,7 @@ namespace RevitChangesMonitor.Addin
             // 
             // reportButton
             // 
+            this.reportButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.reportButton.Location = new System.Drawing.Point(425, 241);
             this.reportButton.Name = "reportButton";
             this.reportButton.Size = new System.Drawing.Size(75, 23);
@@ -119,11 +122,23 @@ namespace RevitChangesMonitor.Addin
             this.reportButton.UseVisualStyleBackColor = true;
             this.reportButton.Click += new System.EventHandler(this.reportButton_Click);
             // 
+            // locationButton
+            // 
+            this.locationButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.locationButton.Location = new System.Drawing.Point(344, 241);
+            this.locationButton.Name = "locationButton";
+            this.locationButton.Size = new System.Drawing.Size(75, 23);
+            this.locationButton.TabIndex = 5;
+            this.locationButton.Text = "Local...";
+            this.locationButton.UseVisualStyleBackColor = true;
+            this.locationButton.Click += new System.EventHandler(this.locationButton_Click);
+            // 
             // ChangesInformationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(664, 267);
+            this.Controls.Add(this.locationButton);
             this.Controls.Add(this.reportButton);
             this.Controls.Add(this.clearButton);
             this.Controls.Add(this.exportButton);
@@ -148,5 +163,6 @@ namespace RevitChangesMonitor.Addin
         private System.Windows.Forms.Button exportButton;
         private System.Windows.Forms.Button clearButton;
         private System.Windows.Forms.Button reportButton;
+        private System.Windows.Forms.Button locationButton;
     }
 }
