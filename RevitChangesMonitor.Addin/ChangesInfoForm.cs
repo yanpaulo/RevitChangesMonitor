@@ -117,6 +117,7 @@ namespace RevitChangesMonitor.Addin
 
         private void clearButton_Click(object sender, EventArgs e)
         {
+            AppContext.Instance.ActiveDocumentChangesInfo.Clear();
             _dataTable.Clear();
         }
 
