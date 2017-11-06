@@ -221,7 +221,7 @@ namespace RevitChangesMonitor.Addin
 
         public void DisplayInfoForm()
         {
-            if (_context.ChangesInformationForm == null)
+            if (_context.ChangesInformationForm == null || !_context.ChangesInformationForm.Visible)
             {
                 _context.ChangesInformationForm = new ChangesInformationForm(_context.ChangesInfoTable);
                 // show dialog
